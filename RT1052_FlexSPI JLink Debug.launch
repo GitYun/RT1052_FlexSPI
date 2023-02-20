@@ -17,7 +17,7 @@
     <booleanAttribute key="com.nxp.mcuxpresso.jlink.flash.halt.target" value="true"/>
     <booleanAttribute key="com.nxp.mcuxpresso.jlink.flash.reset.target" value="true"/>
     <stringAttribute key="com.nxp.mcuxpresso.segger.auto.startup" value="auto"/>
-    <stringAttribute key="com.nxp.mcuxpresso.segger.device" value="MIMXRT1052xxxxB"/>
+    <stringAttribute key="com.nxp.mcuxpresso.segger.device" value="MIMXRT1052CVL5B"/>
     <stringAttribute key="com.nxp.mcuxpresso.segger.endian" value="little"/>
     <stringAttribute key="com.nxp.mcuxpresso.segger.halt.target" value="-halt"/>
     <stringAttribute key="com.nxp.mcuxpresso.segger.if" value="SWD"/>

@@ -16,6 +16,7 @@ static crp_flexspi_error_t crp_flexspi_nor_write_enable(void* dev, uint32_t addr
 static crp_flexspi_error_t crp_flexspi_nor_wait_bus_busy(void* dev);
 static crp_flexspi_error_t crp_flexspi_nor_enable_quad_mode(void* dev);
 static crp_flexspi_error_t crp_flexspi_nor_read(void* dev, uint32_t addr, uint32_t* buf, uint32_t length);
+static crp_flexspi_error_t crp_flexspi_nor_read_by_ahb(void* dev, uint32_t addr, uint32_t* buf, uint32_t length);
 static crp_flexspi_error_t crp_flexspi_nor_page_program(void* dev, uint32_t addr, uint32_t* data, uint32_t length);
 static crp_flexspi_error_t crp_flexspi_nor_erase_sector(void* dev, uint32_t addr);
 static crp_flexspi_error_t crp_flexspi_nor_erase_block(void* dev, uint32_t addr);
@@ -27,6 +28,7 @@ crp_flexspi_funcs_t g_flexspi_funcs = {
     .nor_wait_bus_busy = crp_flexspi_nor_wait_bus_busy,
     .nor_enable_quad_mode = crp_flexspi_nor_enable_quad_mode,
     .nor_read = crp_flexspi_nor_read,
+    .nor_read_by_ahb = crp_flexspi_nor_read_by_ahb,
     .nor_page_program = crp_flexspi_nor_page_program,
     .nor_erase_sector = crp_flexspi_nor_erase_sector,
     .nor_erase_block = crp_flexspi_nor_erase_block,
@@ -173,7 +175,7 @@ static crp_flexspi_error_t crp_flexspi_nor_wait_bus_busy(void* dev)
         return CRP_FLEXSPI_NULL_PTR;
     }
 
-    SCB_CleanInvalidateDCache();
+//    SCB_CleanInvalidateDCache();
 
     xfer.deviceAddress = 0,
     xfer.port = flexspi_dev->devinfo->init_info->flexspi_port;
@@ -257,6 +259,13 @@ static crp_flexspi_error_t crp_flexspi_nor_read(void* dev, uint32_t addr, uint32
 
     SCB_InvalidateDCache_by_Addr((void *)addr, (length + 0x20) & (~0x1Fu));
 
+    status = crp_flexspi_nor_wait_bus_busy(dev);
+
+    if (status != kStatus_Success)
+    {
+        return status;
+    }
+
     xfer.deviceAddress = addr,
     xfer.port = flexspi_dev->devinfo->init_info->flexspi_port;
     xfer.cmdType = kFLEXSPI_Read;
@@ -280,6 +289,26 @@ static crp_flexspi_error_t crp_flexspi_nor_read(void* dev, uint32_t addr, uint32
     }
 
     return status;
+}
+
+static crp_flexspi_error_t crp_flexspi_nor_read_by_ahb(void* dev, uint32_t addr, uint32_t* buf, uint32_t length)
+{
+    assert(dev != NULL);
+    assert(buf != NULL);
+
+    crp_flexspi_dev_t* flexspi_dev = (crp_flexspi_dev_t *)dev;
+    uint32_t flash_size = flexspi_dev->devinfo->init_info->flexspi_dev_cfg->flashSize;
+
+    assert(((addr < FlexSPI_AMBA_BASE) && ((addr + length) < flash_size))
+           || ((addr >= FlexSPI_AMBA_BASE) && ((addr + length) < (FlexSPI_AMBA_BASE + flash_size))));
+
+    if (addr < FlexSPI_AMBA_BASE) {
+        addr += FlexSPI_AMBA_BASE;
+    }
+
+    memcpy(buf, (void *)addr, length);
+
+    return CRP_FLEXSPI_ERR_NO;
 }
 
 static crp_flexspi_error_t crp_flexspi_nor_page_program(void* dev, uint32_t addr, uint32_t* data, uint32_t length)

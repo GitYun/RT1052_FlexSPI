@@ -107,7 +107,7 @@ int main(void) {
 
 #if 1
     crp_flexspi_handle->funcs->nor_enable_quad_mode(crp_flexspi_handle->dev);
-    crp_flexspi_handle->funcs->nor_erase_sector(crp_flexspi_handle->dev, 2048 * 0x1000u);
+    crp_flexspi_handle->funcs->nor_erase_sector(crp_flexspi_handle->dev, 512 * 0x1000u);
 
     uint32_t read[4 + 132] = {0};
 
@@ -126,10 +126,13 @@ int main(void) {
         j = i / 255;
     }
 
-    crp_flexspi_handle->funcs->nor_page_program(crp_flexspi_handle->dev, 2048 * 0x1000u, &data[0], sizeof(data));
+    crp_flexspi_handle->funcs->nor_page_program(crp_flexspi_handle->dev, 512 * 0x1000u, &data[0], sizeof(data));
 
-    DCACHE_InvalidateByRange((FlexSPI_AMBA_BASE + 2048 * 0x1000u), sizeof(read));
-    memcpy(read, (void *)(FlexSPI_AMBA_BASE + 2048 * 0x1000u), sizeof(read));
+    DCACHE_InvalidateByRange((FlexSPI_AMBA_BASE + 512 * 0x1000u), sizeof(read));
+//    memcpy(read, (void *)(FlexSPI_AMBA_BASE + 512 * 0x1000u), sizeof(read));
+    crp_flexspi_handle->funcs->nor_read_by_ahb(crp_flexspi_handle->dev, 512 * 0x1000u, read, sizeof(read));
+
+//    crp_flexspi_handle->funcs->nor_read(crp_flexspi_handle->dev, 512 * 0x1000u, read, sizeof(read));
 
     PRINTF("\t\twrite <-----> read\n");
     for (int i = 0; i < 136; ++i) {
@@ -137,7 +140,7 @@ int main(void) {
     }
 #endif
 
-    NVIC_SetPriorityGrouping(4);
+    NVIC_SetPriorityGrouping(__NVIC_PRIO_BITS - 1); // no sub-priority
     SysTick_Config(SystemCoreClock / 1000);
 
     /* Force the counter to be placed into memory. */

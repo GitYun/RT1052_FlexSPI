@@ -46,6 +46,7 @@ typedef struct {
     crp_flexspi_error_t (*nor_wait_bus_busy)(void* dev);
     crp_flexspi_error_t (*nor_enable_quad_mode)(void* dev);
     crp_flexspi_error_t (*nor_read)(void* dev, uint32_t addr, uint32_t* buf, uint32_t length);
+    crp_flexspi_error_t (*nor_read_by_ahb)(void* dev, uint32_t addr, uint32_t* buf, uint32_t length);
     crp_flexspi_error_t (*nor_page_program)(void* dev, uint32_t addr, uint32_t* data, uint32_t length);
     crp_flexspi_error_t (*nor_erase_sector)(void* dev, uint32_t addr);
     crp_flexspi_error_t (*nor_erase_block)(void* dev, uint32_t addr);
